@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-navy: #1B2A4A;
+  --color-gold:  #C9A84C;
+  --color-cream: #FAF7F2;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: var(--color-navy);
+}

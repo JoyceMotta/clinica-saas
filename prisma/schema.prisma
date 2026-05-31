@@ -1,0 +1,240 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Auth / usuário básico ────────────────────────────────────────────────────
+
+model User {
+  id    String  @id @default(uuid())
+  email String  @unique
+  name  String?
+}
+
+// ─── Cliente ──────────────────────────────────────────────────────────────────
+
+model Cliente {
+  id             String   @id @default(cuid())
+
+  nome           String
+  cpf            String   @unique
+  rg             String?
+  rgOrgaoEmissor String?
+  dataNascimento DateTime
+  sexo           String?
+  estadoCivil    String?
+  profissao      String?
+  nacionalidade  String?
+
+  whatsapp       String
+  telefoneFix    String?
+  email          String?
+
+  cep             String?
+  rua             String?
+  numero          String?
+  complemento     String?
+  bairro          String?
+  cidade          String?
+  uf              String?
+
+  nomeEmergencia        String?
+  parentescoEmergencia  String?
+  telefoneEmergencia    String?
+
+  menorDeIdade   Boolean  @default(false)
+
+  nomeResponsavel              String?
+  cpfResponsavel               String?
+  rgResponsavel                String?
+  dataNascResponsavel          DateTime?
+  parentescoResponsavel        String?
+  whatsappResponsavel          String?
+  emailResponsavel             String?
+  enderecoResponsavelIgual     Boolean   @default(true)
+  cepResponsavel               String?
+  ruaResponsavel               String?
+  numeroResponsavel            String?
+  complementoResponsavel       String?
+  bairroResponsavel            String?
+  cidadeResponsavel            String?
+  ufResponsavel                String?
+
+  comoConheceu   String?
+
+  aniversarioMensagem  Boolean  @default(true)
+  mensagemAniversario  String?
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  documentos     DocumentoCliente[]
+  atendimentos   Atendimento[]
+
+  @@map("clientes")
+}
+
+// ─── Conselho Profissional ────────────────────────────────────────────────────
+// CRM, CRO, CREFITO, CFBio, COREN, CRN, CRP, etc.
+
+model Conselho {
+  id             String          @id @default(cuid())
+  sigla          String          @unique   // 'CRM', 'CRO'
+  nome           String                    // 'Conselho Regional de Medicina'
+  especialidades Especialidade[]
+
+  @@map("conselhos")
+}
+
+// ─── Especialidade ────────────────────────────────────────────────────────────
+
+model Especialidade {
+  id            String         @id @default(cuid())
+  nome          String                         // 'Medicina Estética', 'Odontologia Estética'
+  conselhoId    String
+  conselho      Conselho       @relation(fields: [conselhoId], references: [id])
+  cor           String         @default("#1B2A4A")  // hex, para badge na UI
+  ativo         Boolean        @default(true)
+  profissionais Profissional[]
+  servicos      Servico[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("especialidades")
+}
+
+// ─── Profissional ─────────────────────────────────────────────────────────────
+
+model Profissional {
+  id              String                @id @default(cuid())
+  nome            String
+  especialidadeId String
+  especialidade   Especialidade         @relation(fields: [especialidadeId], references: [id])
+  numeroConselho  String                // '12345'
+  ufConselho      String                // 'SP'
+  ativo           Boolean               @default(true)
+  servicos        ProfissionalServico[]
+  atendimentos    Atendimento[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@map("profissionais")
+}
+
+// ─── Serviço ──────────────────────────────────────────────────────────────────
+
+model Servico {
+  id              String                @id @default(cuid())
+  nome            String
+  descricao       String?
+  especialidadeId String?               // null = multi-especialidade
+  especialidade   Especialidade?        @relation(fields: [especialidadeId], references: [id])
+  ativo           Boolean               @default(true)
+  profissionais   ProfissionalServico[]
+  documentos      ServicoDocumento[]
+  atendimentos    AtendimentoServico[]
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@map("servicos")
+}
+
+// ─── Pivot: Profissional ↔ Serviço ───────────────────────────────────────────
+
+model ProfissionalServico {
+  profissionalId String
+  servicoId      String
+  profissional   Profissional @relation(fields: [profissionalId], references: [id], onDelete: Cascade)
+  servico        Servico      @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+
+  @@id([profissionalId, servicoId])
+  @@map("profissional_servicos")
+}
+
+// ─── Template de Documento ────────────────────────────────────────────────────
+// O admin cria e nomeia templates; cada serviço vincula os seus.
+
+model DocumentoTemplate {
+  id        String             @id @default(cuid())
+  titulo    String
+  descricao String?
+  // 'tcle' | 'anamnese' | 'contrato' | 'termo' | 'aviso' | 'outro'
+  categoria String
+  ativo     Boolean            @default(true)
+  servicos  ServicoDocumento[]
+  emitidos  DocumentoCliente[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@map("documento_templates")
+}
+
+// ─── Pivot: Serviço ↔ DocumentoTemplate ──────────────────────────────────────
+
+model ServicoDocumento {
+  id                  String            @id @default(cuid())
+  servicoId           String
+  documentoTemplateId String
+  obrigatorio         Boolean           @default(true)
+  servico             Servico           @relation(fields: [servicoId], references: [id], onDelete: Cascade)
+  documentoTemplate   DocumentoTemplate @relation(fields: [documentoTemplateId], references: [id], onDelete: Cascade)
+
+  @@unique([servicoId, documentoTemplateId])
+  @@map("servico_documentos")
+}
+
+// ─── Atendimento ─────────────────────────────────────────────────────────────
+// Registro de uma sessão (data + profissional + serviços realizados)
+
+model Atendimento {
+  id             String               @id @default(cuid())
+  clienteId      String
+  profissionalId String?
+  data           DateTime
+  observacao     String?
+  cliente        Cliente              @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  profissional   Profissional?        @relation(fields: [profissionalId], references: [id])
+  servicos       AtendimentoServico[]
+  documentos     DocumentoCliente[]
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+
+  @@map("atendimentos")
+}
+
+// ─── Pivot: Atendimento ↔ Serviço ────────────────────────────────────────────
+
+model AtendimentoServico {
+  atendimentoId String
+  servicoId     String
+  atendimento   Atendimento @relation(fields: [atendimentoId], references: [id], onDelete: Cascade)
+  servico       Servico     @relation(fields: [servicoId], references: [id])
+
+  @@id([atendimentoId, servicoId])
+  @@map("atendimento_servicos")
+}
+
+// ─── Documento emitido para um cliente ───────────────────────────────────────
+
+model DocumentoCliente {
+  id                  String             @id @default(cuid())
+  clienteId           String
+  documentoTemplateId String
+  atendimentoId       String?            // opcional: vinculado a um atendimento específico
+  // 'nao_gerado' | 'pendente' | 'assinado'
+  status              String             @default("nao_gerado")
+  dataGeracao         DateTime?
+  dataAssinatura      DateTime?
+  url                 String?
+  cliente             Cliente            @relation(fields: [clienteId], references: [id], onDelete: Cascade)
+  documentoTemplate   DocumentoTemplate  @relation(fields: [documentoTemplateId], references: [id])
+  atendimento         Atendimento?       @relation(fields: [atendimentoId], references: [id])
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+
+  @@map("documento_clientes")
+}
