@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { useAuth, ROLE_LABELS, UserRole } from '@/context/AuthContext';
 
-// ─── SVG Icons ───────────────────────────────────────────────────────────────
+// ─── Icons ────────────────────────────────────────────────────────────────────
 
 function IconDashboard() {
   return (
@@ -54,33 +55,59 @@ function IconConfig() {
   );
 }
 
-// ─── Nav items ────────────────────────────────────────────────────────────────
+function IconSair() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+    </svg>
+  );
+}
 
-const navItems = [
-  { label: 'Dashboard',     href: '/',              icon: <IconDashboard />   },
-  { label: 'Clientes',      href: '/clientes',      icon: <IconClientes />    },
-  { label: 'Agenda',        href: '/agenda',        icon: <IconAgenda />      },
-  { label: 'Catálogo',      href: '/catalogo',      icon: <IconCatalogo />    },
-  { label: 'Financeiro',    href: '/financeiro',    icon: <IconFinanceiro />  },
-  { label: 'Configurações', href: '/configuracoes', icon: <IconConfig />      },
+// ─── Nav items com controle por perfil ────────────────────────────────────────
+
+type NavItem = {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+  roles: UserRole[];
+};
+
+const navItems: NavItem[] = [
+  { label: 'Dashboard',     href: '/',              icon: <IconDashboard />,  roles: ['admin', 'profissional', 'recepcionista'] },
+  { label: 'Clientes',      href: '/clientes',      icon: <IconClientes />,   roles: ['admin', 'recepcionista'] },
+  { label: 'Agenda',        href: '/agenda',         icon: <IconAgenda />,     roles: ['admin', 'profissional', 'recepcionista'] },
+  { label: 'Catálogo',      href: '/catalogo',       icon: <IconCatalogo />,   roles: ['admin'] },
+  { label: 'Financeiro',    href: '/financeiro',     icon: <IconFinanceiro />, roles: ['admin'] },
+  { label: 'Configurações', href: '/configuracoes',  icon: <IconConfig />,     roles: ['admin'] },
 ];
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/';
     return pathname === href || pathname.startsWith(href + '/');
   }
 
+  function handleLogout() {
+    logout();
+    router.push('/login');
+  }
+
+  const visibleItems = user
+    ? navItems.filter((item) => item.roles.includes(user.role))
+    : [];
+
   return (
     <aside
       className="w-64 flex-shrink-0 flex flex-col h-full"
       style={{ backgroundColor: '#1B2A4A', color: '#FAF7F2' }}
     >
-      {/* Logotipo */}
+      {/* Logo */}
       <div className="px-6 py-8 border-b" style={{ borderColor: 'rgba(201,168,76,0.3)' }}>
         <span className="text-2xl font-bold tracking-wide" style={{ color: '#C9A84C' }}>
           Clínica
@@ -91,28 +118,19 @@ export default function Sidebar() {
       {/* Navegação */}
       <nav className="flex-1 px-3 py-6">
         <ul className="space-y-1">
-          {navItems.map(({ label, href, icon }) => {
+          {visibleItems.map(({ label, href, icon }) => {
             const active = isActive(href);
             return (
               <li key={href}>
                 <Link
                   href={href}
                   className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
-                  style={
-                    active
-                      ? { backgroundColor: '#C9A84C', color: '#1B2A4A' }
-                      : { color: '#FAF7F2' }
-                  }
+                  style={active ? { backgroundColor: '#C9A84C', color: '#1B2A4A' } : { color: '#FAF7F2' }}
                   onMouseEnter={(e) => {
-                    if (!active) {
-                      (e.currentTarget as HTMLAnchorElement).style.backgroundColor =
-                        'rgba(201,168,76,0.15)';
-                    }
+                    if (!active) (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'rgba(201,168,76,0.15)';
                   }}
                   onMouseLeave={(e) => {
-                    if (!active) {
-                      (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
-                    }
+                    if (!active) (e.currentTarget as HTMLAnchorElement).style.backgroundColor = 'transparent';
                   }}
                 >
                   {icon}
@@ -124,9 +142,31 @@ export default function Sidebar() {
         </ul>
       </nav>
 
-      {/* Rodapé */}
-      <div className="px-6 py-4 border-t text-xs opacity-50" style={{ borderColor: 'rgba(201,168,76,0.3)' }}>
-        © {new Date().getFullYear()} Clínica SAAS
+      {/* Rodapé: usuário + sair */}
+      <div className="border-t" style={{ borderColor: 'rgba(201,168,76,0.3)' }}>
+        {user && (
+          <div className="px-5 py-3">
+            <p className="text-sm font-semibold truncate" style={{ color: '#FAF7F2' }}>
+              {user.nome}
+            </p>
+            <p className="text-xs opacity-50 mt-0.5">{ROLE_LABELS[user.role]}</p>
+          </div>
+        )}
+        <div className="px-3 pb-4">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+            style={{ color: '#FAF7F2' }}
+            onMouseEnter={(e) => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = 'rgba(201,168,76,0.15)')}
+            onMouseLeave={(e) => ((e.currentTarget as HTMLButtonElement).style.backgroundColor = 'transparent')}
+          >
+            <IconSair />
+            Sair
+          </button>
+        </div>
+        <div className="px-6 pb-4 text-xs opacity-30 border-t" style={{ borderColor: 'rgba(201,168,76,0.2)', paddingTop: '0.75rem' }}>
+          © {new Date().getFullYear()} Clínica SAAS
+        </div>
       </div>
     </aside>
   );
