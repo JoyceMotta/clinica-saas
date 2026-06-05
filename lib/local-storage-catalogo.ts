@@ -38,6 +38,7 @@ export interface ItemCatalogo {
   insumos: InsumoVinculado[];
   documentosIds: string[];
   intervaloRecompra: number | null;  // dias
+  duracaoMediaMin: number | null;    // duração padrão em minutos (null = sem tempo definido)
   ativo: boolean;
   createdAt: string;
 }
@@ -62,7 +63,7 @@ const KEY_PACOTES = 'clinica_catalogo_pacotes_v1';
 const ITENS_SEED: ItemCatalogo[] = [
   {
     id: 'cat_consulta',
-    nome: 'Consulta Médica',
+    nome: 'Consulta',
     categoria: 'consulta',
     tipoFiscal: 'servico',
     valorUnitario: 35000,
@@ -73,6 +74,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [],
     documentosIds: ['dt_anamnese_g'],
     intervaloRecompra: 90,
+    duracaoMediaMin: 30,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -89,6 +91,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [{ nome: 'Toxina Botulínica 100U', quantidade: 1, unidade: 'frasco' }],
     documentosIds: ['dt_tcle_toxina', 'dt_anamnese_g', 'dt_termo_inv', 'dt_aviso_inj'],
     intervaloRecompra: 180,
+    duracaoMediaMin: 45,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -105,6 +108,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [{ nome: 'Ácido Hialurônico 1ml', quantidade: 1, unidade: 'seringa' }],
     documentosIds: ['dt_tcle_preench', 'dt_anamnese_g', 'dt_termo_inv', 'dt_aviso_inj'],
     intervaloRecompra: 365,
+    duracaoMediaMin: 60,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -121,6 +125,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [{ nome: 'Sculptra 1 frasco', quantidade: 1, unidade: 'frasco' }],
     documentosIds: ['dt_tcle_bio', 'dt_anamnese_g', 'dt_termo_inv', 'dt_aviso_inj'],
     intervaloRecompra: 365,
+    duracaoMediaMin: 90,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -137,6 +142,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [{ nome: 'TCA 30%', quantidade: 5, unidade: 'ml' }],
     documentosIds: ['dt_tcle_peeling', 'dt_anamnese_g', 'dt_aviso_inj'],
     intervaloRecompra: 30,
+    duracaoMediaMin: 40,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -156,6 +162,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     ],
     documentosIds: ['dt_tcle_hof', 'dt_tcle_preench', 'dt_tcle_toxina', 'dt_anamnese_o', 'dt_termo_inv'],
     intervaloRecompra: 180,
+    duracaoMediaMin: 120,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -172,6 +179,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [],
     documentosIds: ['dt_tcle_peeling', 'dt_anamnese_g'],
     intervaloRecompra: null,
+    duracaoMediaMin: 40,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -188,6 +196,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [],
     documentosIds: [],
     intervaloRecompra: 60,
+    duracaoMediaMin: null,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -204,6 +213,7 @@ const ITENS_SEED: ItemCatalogo[] = [
     insumos: [],
     documentosIds: [],
     intervaloRecompra: 45,
+    duracaoMediaMin: null,
     ativo: true,
     createdAt: '2024-01-01T00:00:00Z',
   },
@@ -248,7 +258,13 @@ export function formatReais(centavos: number): string {
 // ─── Itens ────────────────────────────────────────────────────────────────────
 
 export function listarItens(): ItemCatalogo[] {
-  return get(KEY_ITENS, ITENS_SEED);
+  let items = get(KEY_ITENS, ITENS_SEED);
+  // Migração: "Consulta Médica" → "Consulta"
+  if (items.some(i => i.nome === 'Consulta Médica')) {
+    items = items.map(i => i.nome === 'Consulta Médica' ? { ...i, nome: 'Consulta' } : i);
+    set(KEY_ITENS, items);
+  }
+  return items;
 }
 
 export function criarItem(data: Omit<ItemCatalogo, 'id' | 'createdAt'>): ItemCatalogo {
