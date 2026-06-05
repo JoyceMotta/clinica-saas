@@ -1,5 +1,5 @@
-import AgendaAniversarios from '@/components/AgendaAniversarios';
+import AgendaGoogle from '@/components/AgendaGoogle';
 
 export default function AgendaPage() {
-  return <AgendaAniversarios />;
+  return <AgendaGoogle />;
 }

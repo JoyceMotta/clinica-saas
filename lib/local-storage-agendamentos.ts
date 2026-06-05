@@ -16,6 +16,7 @@ export interface Agendamento {
   hora: string;       // HH:MM
   procedimento: string;
   profissional: string;
+  duracaoMin?: number; // duração em minutos (default visual: 30)
   status: StatusAgendamento;
   observacoes?: string;
   createdAt: string;
@@ -62,6 +63,14 @@ function gerar(): string {
 }
 
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
+
+export function listarTodosAgendamentos(): Agendamento[] {
+  return todos().sort((a, b) => {
+    const da = `${a.data}T${a.hora}`;
+    const db = `${b.data}T${b.hora}`;
+    return da.localeCompare(db);
+  });
+}
 
 export function listarAgendamentosCliente(clienteId: string): Agendamento[] {
   return todos()
