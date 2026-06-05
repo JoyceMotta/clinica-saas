@@ -20,6 +20,8 @@ import {
   type ServicoDocumento,
 } from '@/lib/local-storage-configuracoes';
 import { listarAgendamentosCliente } from '@/lib/local-storage-agendamentos';
+import { buscarClienteLocalPorId } from '@/lib/local-storage-clientes';
+import ModalUsarDocumento from '@/components/ModalUsarDocumento';
 
 // ─── Helpers de status ────────────────────────────────────────────────────────
 
@@ -175,6 +177,7 @@ export default function TabDocumentos({ clienteId }: { clienteId: string }) {
   const [procedimentos, setProcedimentos] = useState<string[]>([]);
   const [semVinculo, setSemVinculo] = useState(false);
   const [secaoAberta, setSecaoAberta] = useState<Record<string, boolean>>({});
+  const [modalModelo, setModalModelo] = useState(false);
 
   useEffect(() => {
     // 1. Pegar procedimentos dos agendamentos
@@ -441,12 +444,46 @@ export default function TabDocumentos({ clienteId }: { clienteId: string }) {
         );
       })}
 
+      {/* Usar Modelo */}
+      <div
+        className="flex items-center justify-between gap-3 rounded-xl px-5 py-4"
+        style={{ backgroundColor: '#FFFBF0', border: '1px solid #C9A84C33' }}
+      >
+        <div>
+          <p className="text-sm font-bold" style={{ color: '#1B2A4A' }}>Usar Modelo de Documento</p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Preencha automaticamente TCLEs, anamneses e contratos com os dados deste paciente.
+          </p>
+        </div>
+        <button
+          onClick={() => setModalModelo(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold hover:opacity-90 flex-shrink-0"
+          style={{ backgroundColor: '#C9A84C', color: '#1B2A4A' }}
+        >
+          📋 Usar Modelo
+        </button>
+      </div>
+
       {/* Rodapé */}
       <p className="text-xs text-gray-400 text-center">
-        Geração e assinatura digital de documentos via integração PDF — em breve. ·{' '}
         Configure documentos por serviço em{' '}
         <strong className="font-medium">Configurações → Vínculos</strong>.
       </p>
+
+      {modalModelo && (() => {
+        const cliente = buscarClienteLocalPorId(clienteId);
+        const ags = listarAgendamentosCliente(clienteId);
+        const ultimoAg = ags[0];
+        if (!cliente) return null;
+        return (
+          <ModalUsarDocumento
+            cliente={cliente}
+            procedimento={ultimoAg?.procedimento}
+            profissional={ultimoAg?.profissional}
+            onClose={() => setModalModelo(false)}
+          />
+        );
+      })()}
     </div>
   );
 }

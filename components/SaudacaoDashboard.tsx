@@ -23,7 +23,9 @@ export default function SaudacaoDashboard() {
       <div>
         <div className="flex items-baseline gap-2 flex-wrap">
           <h1 className="text-3xl font-bold" style={{ color: '#1B2A4A' }}>
-            {texto}{primeiroNome ? `, ${primeiroNome}` : ''}!
+            {texto}{primeiroNome ? (
+              <>, <span style={{ color: '#C9A84C' }}>{primeiroNome}</span></>
+            ) : ''}!
           </h1>
           <span className="text-2xl leading-none">{emoji}</span>
         </div>
