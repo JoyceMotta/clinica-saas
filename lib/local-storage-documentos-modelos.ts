@@ -77,11 +77,11 @@ const TCLE_TOXINA_SEED: ModeloDocumento = {
   titulo: 'TCLE — Aplicação de Toxina Botulínica',
   categoria: 'tcle',
   conselho: 'CRM, CFBio, CRO',
-  versao: '1.0',
+  versao: '2.0',
   tipoArquivo: 'texto',
   ativo: true,
   createdAt: '2024-01-01T00:00:00Z',
-  updatedAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2026-04-01T00:00:00Z',
   conteudo: `<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">
 <h2 style="text-align:center">TERMO DE CONSENTIMENTO LIVRE E ESCLARECIDO (TCLE)</h2>
 <h3 style="text-align:center">PROCEDIMENTO: APLICAÇÃO DE TOXINA BOTULÍNICA</h3>
@@ -183,12 +183,16 @@ const TCLE_TOXINA_SEED: ModeloDocumento = {
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
 export function listarModelos(): ModeloDocumento[] {
-  const items = todos();
-  // Injeta seed TCLE se ainda não existir
-  if (!items.some(m => m.id === TCLE_TOXINA_SEED.id)) {
-    const comSeed = [...items, TCLE_TOXINA_SEED];
-    salvar(comSeed);
-    return comSeed.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
+  let items = todos();
+  const idx = items.findIndex(m => m.id === TCLE_TOXINA_SEED.id);
+  if (idx === -1) {
+    // Seed ainda não existe — injeta
+    items = [...items, TCLE_TOXINA_SEED];
+    salvar(items);
+  } else if (items[idx].versao !== TCLE_TOXINA_SEED.versao) {
+    // Versão desatualizada — atualiza conteúdo, versão e updatedAt
+    items[idx] = { ...items[idx], versao: TCLE_TOXINA_SEED.versao, conteudo: TCLE_TOXINA_SEED.conteudo, updatedAt: TCLE_TOXINA_SEED.updatedAt };
+    salvar(items);
   }
   return items.sort((a, b) => b.updatedAt.localeCompare(a.updatedAt));
 }
