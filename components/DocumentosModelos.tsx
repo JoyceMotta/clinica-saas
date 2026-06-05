@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   listarModelos, criarModelo, atualizarModelo, deletarModelo,
-  imprimirDocumento, preencherTemplate,
+  imprimirDocumento, preencherTemplate, isHtmlContent,
   CATEGORIA_MODELOS_LABELS, CATEGORIA_MODELOS_CORES, CONSELHOS_OPTS, VARIAVEIS,
   type ModeloDocumento, type CategoriaModelo,
 } from '@/lib/local-storage-documentos-modelos';
@@ -211,8 +211,14 @@ function EditorModal({
                   </div>
 
                   {preview ? (
-                    <div className="flex-1 overflow-auto border border-gray-200 rounded-xl p-4 text-sm whitespace-pre-wrap leading-relaxed bg-gray-50 font-mono text-gray-800">
-                      {preencherTemplate(conteudo, EXEMPLO_VARS) || <span className="text-gray-400 italic">Conteúdo vazio…</span>}
+                    <div className="flex-1 overflow-auto border border-gray-200 rounded-xl bg-white">
+                      {(() => {
+                        const filled = preencherTemplate(conteudo, EXEMPLO_VARS);
+                        if (!filled) return <p className="text-gray-400 italic p-4">Conteúdo vazio…</p>;
+                        return isHtmlContent(filled)
+                          ? <div className="p-4 text-sm" dangerouslySetInnerHTML={{ __html: filled }} />
+                          : <pre className="p-4 text-sm whitespace-pre-wrap leading-relaxed font-mono text-gray-800">{filled}</pre>;
+                      })()}
                     </div>
                   ) : (
                     <textarea

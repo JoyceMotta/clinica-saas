@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import {
-  listarModelos, preencherTemplate, imprimirDocumento,
+  listarModelos, preencherTemplate, imprimirDocumento, isHtmlContent,
   CATEGORIA_MODELOS_LABELS, CATEGORIA_MODELOS_CORES,
   type ModeloDocumento,
 } from '@/lib/local-storage-documentos-modelos';
@@ -159,10 +159,13 @@ export default function ModalUsarDocumento({
 
               {/* Document preview */}
               <div
-                className="border border-gray-200 rounded-xl p-5 text-sm whitespace-pre-wrap leading-relaxed font-mono bg-white"
+                className="border border-gray-200 rounded-xl bg-white overflow-auto"
                 style={{ minHeight: 300 }}
               >
-                {conteudoPreenchido}
+                {isHtmlContent(conteudoPreenchido)
+                  ? <div className="p-5 text-sm" dangerouslySetInnerHTML={{ __html: conteudoPreenchido }} />
+                  : <pre className="p-5 text-sm whitespace-pre-wrap leading-relaxed font-mono">{conteudoPreenchido}</pre>
+                }
               </div>
             </div>
           )}
