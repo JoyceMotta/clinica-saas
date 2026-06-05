@@ -15,6 +15,23 @@ import {
   type Servico,
 } from '@/lib/local-storage-configuracoes';
 
+// ─── Títulos profissionais ────────────────────────────────────────────────────
+
+const TITULOS_PROFISSIONAIS = [
+  'Médica(o) Esteta',
+  'Dermatologista',
+  'Dentista Esteta',
+  'Cirurgiã(o)-Dentista',
+  'Biomédica(o) Esteta',
+  'Fisioterapeuta Dermato-Funcional',
+  'Enfermeira(o) Esteta',
+  'Nutricionista Esteta',
+  'Psicóloga(o)',
+  'Esteticista',
+  'Técnica(o) em Estética',
+  'Outro',
+];
+
 // ─── Modal criar / editar ─────────────────────────────────────────────────────
 
 function ProfModal({
@@ -35,11 +52,22 @@ function ProfModal({
   const [numeroConselho, setNumero]     = useState(inicial?.numeroConselho ?? '');
   const [ufConselho, setUf]             = useState(inicial?.ufConselho ?? 'SP');
   const [servicoIds, setServicoIds]     = useState<string[]>(inicial?.servicoIds ?? []);
+  const [duracoes, setDuracoes]         = useState<Record<string, string>>(() => {
+    const src = inicial?.duracoesPorServico ?? {};
+    return Object.fromEntries(Object.entries(src).map(([k, v]) => [k, String(v)]));
+  });
   const [ativo, setAtivo]               = useState(inicial?.ativo ?? true);
   const [erro, setErro]                 = useState('');
 
-  const espAtual = especialidades.find((e) => e.id === especialidadeId);
-  const conselho = espAtual ? CONSELHOS_PREDEFINIDOS.find((c) => c.id === espAtual.conselhoId) : undefined;
+  // Título profissional
+  const tituloInicial = inicial?.tituloProfissional ?? '';
+  const isTituloFixo  = TITULOS_PROFISSIONAIS.includes(tituloInicial) && tituloInicial !== 'Outro';
+  const [tituloSel, setTituloSel]     = useState(isTituloFixo ? tituloInicial : (tituloInicial ? 'Outro' : ''));
+  const [tituloOutro, setTituloOutro] = useState(isTituloFixo ? '' : tituloInicial);
+
+  const espAtual    = especialidades.find((e) => e.id === especialidadeId);
+  const conselho    = espAtual?.conselhoId ? CONSELHOS_PREDEFINIDOS.find((c) => c.id === espAtual.conselhoId) : undefined;
+  const isEstetica  = especialidadeId === 'e_estetica';
 
   // Filtra serviços: mostra multi-esp + os da especialidade selecionada
   const servicosFiltrados = servicos.filter(
@@ -56,7 +84,13 @@ function ProfModal({
     e.preventDefault();
     if (!nome.trim()) { setErro('Nome é obrigatório.'); return; }
     if (!especialidadeId) { setErro('Selecione a especialidade.'); return; }
-    onSave({ nome: nome.trim(), especialidadeId, numeroConselho: numeroConselho.trim(), ufConselho, servicoIds, ativo });
+    const duracoesPorServico: Record<string, number> = {};
+    for (const [id, val] of Object.entries(duracoes)) {
+      const n = parseInt(val);
+      if (!isNaN(n) && n > 0) duracoesPorServico[id] = n;
+    }
+    const tituloProfissional = tituloSel === 'Outro' ? tituloOutro.trim() : tituloSel || undefined;
+    onSave({ nome: nome.trim(), tituloProfissional, especialidadeId, numeroConselho: isEstetica ? '' : numeroConselho.trim(), ufConselho, servicoIds, duracoesPorServico, ativo });
     onClose();
   }
 
@@ -98,7 +132,6 @@ function ProfModal({
               value={especialidadeId}
               onChange={(e) => {
                 setEsp(e.target.value);
-                // Limpa serviços que não se aplicam à nova especialidade
                 const novaEspId = e.target.value;
                 setServicoIds((prev) =>
                   prev.filter((id) => {
@@ -115,47 +148,72 @@ function ProfModal({
             </select>
           </div>
 
-          {/* Conselho + Número + UF */}
-          <div className="grid grid-cols-5 gap-3">
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Conselho</label>
-              <div
-                className="px-3 py-2 border border-gray-100 rounded-lg bg-gray-50 text-sm font-semibold"
-                style={{ color: '#1B2A4A' }}
-              >
-                {conselho?.sigla ?? '—'}
-              </div>
-            </div>
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nº do registro</label>
+          {/* Título Profissional */}
+          <div>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Título Profissional</label>
+            <select
+              value={tituloSel}
+              onChange={(e) => { setTituloSel(e.target.value); if (e.target.value !== 'Outro') setTituloOutro(''); }}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none"
+            >
+              <option value="">Selecione…</option>
+              {TITULOS_PROFISSIONAIS.map((t) => <option key={t} value={t}>{t}</option>)}
+            </select>
+            {tituloSel === 'Outro' && (
               <input
                 type="text"
-                value={numeroConselho}
-                onChange={(e) => setNumero(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                value={tituloOutro}
+                onChange={(e) => setTituloOutro(e.target.value)}
+                placeholder="Digite o título"
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none mt-2"
               />
-            </div>
-            <div>
-              <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">UF</label>
-              <select
-                value={ufConselho}
-                onChange={(e) => setUf(e.target.value)}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none"
-              >
-                {UF_LIST.map((uf) => <option key={uf}>{uf}</option>)}
-              </select>
-            </div>
+            )}
           </div>
 
-          {/* Preview da credencial */}
-          {conselho && numeroConselho && (
-            <div
-              className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
-              style={{ backgroundColor: 'rgba(27,42,74,0.05)', color: '#1B2A4A' }}
-            >
-              🪪 {conselho.sigla}-{ufConselho} {numeroConselho}
-            </div>
+          {/* Conselho + Número + UF (ocultado para Estética) */}
+          {!isEstetica && (
+            <>
+              <div className="grid grid-cols-5 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Conselho</label>
+                  <div
+                    className="px-3 py-2 border border-gray-100 rounded-lg bg-gray-50 text-sm font-semibold"
+                    style={{ color: '#1B2A4A' }}
+                  >
+                    {conselho?.sigla ?? '—'}
+                  </div>
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">Nº do registro</label>
+                  <input
+                    type="text"
+                    value={numeroConselho}
+                    onChange={(e) => setNumero(e.target.value.replace(/\D/g, ''))}
+                    placeholder="123456"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-500 mb-1.5 uppercase tracking-wide">UF</label>
+                  <select
+                    value={ufConselho}
+                    onChange={(e) => setUf(e.target.value)}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none"
+                  >
+                    {UF_LIST.map((uf) => <option key={uf}>{uf}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {conselho && numeroConselho && (
+                <div
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold"
+                  style={{ backgroundColor: 'rgba(27,42,74,0.05)', color: '#1B2A4A' }}
+                >
+                  🪪 {conselho.sigla}-{ufConselho} {numeroConselho}
+                </div>
+              )}
+            </>
           )}
 
           {/* Serviços */}
@@ -187,6 +245,39 @@ function ProfModal({
               </div>
             )}
           </div>
+
+          {/* Duração por serviço */}
+          {servicoIds.length > 0 && (
+            <div>
+              <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wide">
+                Duração por Serviço
+              </label>
+              <div className="space-y-2 border border-gray-100 rounded-xl p-3">
+                {servicoIds.map((id) => {
+                  const s = servicos.find((sv) => sv.id === id);
+                  if (!s) return null;
+                  return (
+                    <div key={id} className="flex items-center gap-3">
+                      <span className="text-sm text-gray-700 flex-1 truncate">{s.nome}</span>
+                      <input
+                        type="number"
+                        min={1}
+                        value={duracoes[id] ?? ''}
+                        onChange={(e) =>
+                          setDuracoes((prev) => ({ ...prev, [id]: e.target.value }))
+                        }
+                        placeholder="min (padrão do catálogo)"
+                        className="w-44 border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm focus:outline-none focus:ring-2 text-right placeholder:text-left"
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-[10px] text-gray-400 mt-1.5">
+                Deixe em branco para usar a duração padrão definida no catálogo.
+              </p>
+            </div>
+          )}
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={ativo} onChange={(e) => setAtivo(e.target.checked)} className="w-4 h-4 rounded" />

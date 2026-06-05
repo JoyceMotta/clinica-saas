@@ -30,9 +30,9 @@ export const VARIAVEIS: { key: string; label: string; exemplo: string }[] = [
   { key: '{{telefone}}',        label: 'Telefone/WhatsApp',    exemplo: '(11) 99999-0000' },
   { key: '{{email_paciente}}',  label: 'E-mail do paciente',   exemplo: 'paciente@email.com' },
   { key: '{{data}}',            label: 'Data atual',           exemplo: '05/06/2026' },
-  { key: '{{procedimento}}',    label: 'Procedimento',         exemplo: 'Toxina Botulínica' },
-  { key: '{{profissional}}',    label: 'Profissional',         exemplo: 'Dra. Joyce Motta' },
-  { key: '{{conselho}}',        label: 'Conselho',             exemplo: 'CRM' },
+  { key: '{{procedimento}}',       label: 'Procedimento',              exemplo: 'Toxina Botulínica' },
+  { key: '{{titulo_profissional}}', label: 'Título + nome do profissional', exemplo: 'Dra. Joyce Motta' },
+  { key: '{{conselho}}',           label: 'Conselho',                  exemplo: 'CRM' },
   { key: '{{numero_registro}}', label: 'Nº de registro',       exemplo: '123456' },
   { key: '{{clinica}}',         label: 'Nome da clínica',      exemplo: 'Clínica Estética' },
 ];

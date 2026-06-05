@@ -152,8 +152,8 @@ export default function TabEspecialidades() {
     refresh();
   }
 
-  const getConselho = (conselhoId: string) =>
-    CONSELHOS_PREDEFINIDOS.find((c) => c.id === conselhoId);
+  const getConselho = (conselhoId: string | null) =>
+    conselhoId ? CONSELHOS_PREDEFINIDOS.find((c) => c.id === conselhoId) : undefined;
 
   return (
     <div className="space-y-6">

@@ -21,6 +21,7 @@ import {
 } from '@/lib/local-storage-configuracoes';
 import { listarAgendamentosCliente } from '@/lib/local-storage-agendamentos';
 import { buscarClienteLocalPorId } from '@/lib/local-storage-clientes';
+import { listarProfissionais } from '@/lib/local-storage-configuracoes';
 import ModalUsarDocumento from '@/components/ModalUsarDocumento';
 
 // ─── Helpers de status ────────────────────────────────────────────────────────
@@ -475,11 +476,21 @@ export default function TabDocumentos({ clienteId }: { clienteId: string }) {
         const ags = listarAgendamentosCliente(clienteId);
         const ultimoAg = ags[0];
         if (!cliente) return null;
+
+        // Monta "Título — Nome" a partir do cadastro do profissional
+        let tituloProfissional = ultimoAg?.profissional ?? '';
+        if (ultimoAg?.profissional) {
+          const profRec = listarProfissionais().find(p => p.nome === ultimoAg.profissional);
+          if (profRec?.tituloProfissional) {
+            tituloProfissional = `${profRec.tituloProfissional} ${profRec.nome}`;
+          }
+        }
+
         return (
           <ModalUsarDocumento
             cliente={cliente}
             procedimento={ultimoAg?.procedimento}
-            profissional={ultimoAg?.profissional}
+            tituloProfissional={tituloProfissional}
             onClose={() => setModalModelo(false)}
           />
         );

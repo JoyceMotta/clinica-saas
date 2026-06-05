@@ -31,9 +31,9 @@ const EXEMPLO_VARS: Record<string, string> = {
   '{{telefone}}':        '(11) 99999-0000',
   '{{email_paciente}}':  'paciente@email.com',
   '{{data}}':            new Date().toLocaleDateString('pt-BR'),
-  '{{procedimento}}':    'Toxina Botulínica',
-  '{{profissional}}':    'Dra. Joyce Motta',
-  '{{conselho}}':        'CRM',
+  '{{procedimento}}':        'Toxina Botulínica',
+  '{{titulo_profissional}}': 'Dra. Joyce Motta — Médica Esteta',
+  '{{conselho}}':            'CRM',
   '{{numero_registro}}': '123456',
   '{{clinica}}':         'Clínica Estética',
 };

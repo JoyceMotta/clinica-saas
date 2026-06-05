@@ -9,7 +9,7 @@ export interface Conselho {
 export interface Especialidade {
   id: string;
   nome: string;
-  conselhoId: string;
+  conselhoId: string | null;
   cor: string;
   ativo: boolean;
   createdAt: string;
@@ -18,6 +18,7 @@ export interface Especialidade {
 export interface Profissional {
   id: string;
   nome: string;
+  tituloProfissional?: string;
   especialidadeId: string;
   numeroConselho: string;
   ufConselho: string;
@@ -114,6 +115,7 @@ const ESPECIALIDADES_SEED: Especialidade[] = [
   { id: 'e_bio',     nome: 'Biomedicina Estética',           conselhoId: 'c_cfbio',   cor: '#EC4899', ativo: true, createdAt: '2024-01-01T00:00:00Z' },
   { id: 'e_enf',     nome: 'Enfermagem Estética',            conselhoId: 'c_coren',   cor: '#8B5CF6', ativo: true, createdAt: '2024-01-01T00:00:00Z' },
   { id: 'e_nut',     nome: 'Nutrição Estética',              conselhoId: 'c_crn',     cor: '#14B8A6', ativo: true, createdAt: '2024-01-01T00:00:00Z' },
+  { id: 'e_estetica', nome: 'Estética',                    conselhoId: null,        cor: '#F97316', ativo: true, createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 const DOC_TEMPLATES_SEED: DocumentoTemplate[] = [
@@ -148,7 +150,11 @@ const SERVICOS_SEED: Servico[] = [
   { id: 's_hof',         nome: 'Harmonização Orofacial',          especialidadeId: 'e_hof',     ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
   { id: 's_drenagem',    nome: 'Drenagem Linfática',              especialidadeId: 'e_fisio',   ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
   { id: 's_massagem',    nome: 'Massagem Modeladora',             especialidadeId: 'e_fisio',   ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
-  { id: 's_ultrassom',   nome: 'Ultrassom Terapêutico',           especialidadeId: 'e_fisio',   ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 's_ultrassom',      nome: 'Ultrassom Terapêutico',      especialidadeId: 'e_fisio',    ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 's_estetica_fac',  nome: 'Estética Facial',            especialidadeId: 'e_estetica', ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 's_estetica_corp', nome: 'Estética Corporal',          especialidadeId: 'e_estetica', ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 's_limpeza_est',   nome: 'Limpeza de Pele (Esteticista)', especialidadeId: 'e_estetica', ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
+  { id: 's_tecnica_est',   nome: 'Técnicas em Estética',       especialidadeId: 'e_estetica', ativo: true, descricao: '', createdAt: '2024-01-01T00:00:00Z' },
 ];
 
 // ─── Helpers de storage ───────────────────────────────────────────────────────

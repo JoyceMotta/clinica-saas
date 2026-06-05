@@ -11,13 +11,13 @@ import type { ClienteLocal } from '@/lib/local-storage-clientes';
 interface Props {
   cliente: ClienteLocal;
   procedimento?: string;
-  profissional?: string;
+  tituloProfissional?: string;  // título + nome, ex: "Dra. Joyce Motta — Médica Esteta"
   clinicaNome?: string;
   onClose: () => void;
 }
 
 export default function ModalUsarDocumento({
-  cliente, procedimento = '', profissional = '', clinicaNome = 'Clínica', onClose,
+  cliente, procedimento = '', tituloProfissional = '', clinicaNome = 'Clínica', onClose,
 }: Props) {
   const modelos = useMemo(() => listarModelos().filter(m => m.ativo && m.tipoArquivo === 'texto'), []);
   const [selecionado, setSelecionado] = useState<ModeloDocumento | null>(null);
@@ -32,13 +32,13 @@ export default function ModalUsarDocumento({
       : '',
     '{{telefone}}':        cliente.whatsapp,
     '{{email_paciente}}':  cliente.email,
-    '{{data}}':            new Date().toLocaleDateString('pt-BR'),
-    '{{procedimento}}':    procedimento,
-    '{{profissional}}':    profissional,
-    '{{conselho}}':        '',
-    '{{numero_registro}}': '',
-    '{{clinica}}':         clinicaNome,
-  }), [cliente, procedimento, profissional, clinicaNome]);
+    '{{data}}':                new Date().toLocaleDateString('pt-BR'),
+    '{{procedimento}}':        procedimento,
+    '{{titulo_profissional}}': tituloProfissional,
+    '{{conselho}}':            '',
+    '{{numero_registro}}':     '',
+    '{{clinica}}':             clinicaNome,
+  }), [cliente, procedimento, tituloProfissional, clinicaNome]);
 
   const conteudoPreenchido = selecionado
     ? preencherTemplate(selecionado.conteudo, vars)
