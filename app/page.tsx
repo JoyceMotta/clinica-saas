@@ -1,16 +1,22 @@
 import { Suspense } from 'react';
+import SaudacaoDashboard from '@/components/SaudacaoDashboard';
 import AniversariosWidget from '@/components/AniversariosWidget';
 
 export default function DashboardPage() {
   return (
     <div className="space-y-8">
-      {/* ── Cabeçalho ── */}
-      <div>
-        <h1 className="text-3xl font-bold" style={{ color: '#1B2A4A' }}>Dashboard</h1>
-        <p className="text-gray-500 mt-1 text-sm">Bem-vindo ao painel da Clínica.</p>
-      </div>
 
-      {/* ── Aniversários ── */}
+      {/* Saudação personalizada */}
+      <Suspense fallback={
+        <div>
+          <div className="h-9 w-64 bg-gray-100 rounded-lg animate-pulse" />
+          <div className="h-4 w-48 bg-gray-100 rounded mt-2 animate-pulse" />
+        </div>
+      }>
+        <SaudacaoDashboard />
+      </Suspense>
+
+      {/* Aniversários */}
       <div>
         <h2 className="text-base font-bold mb-4" style={{ color: '#1B2A4A' }}>
           Aniversários
@@ -19,6 +25,7 @@ export default function DashboardPage() {
           <AniversariosWidget />
         </Suspense>
       </div>
+
     </div>
   );
 }

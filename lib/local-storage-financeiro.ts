@@ -85,6 +85,10 @@ function gerar(): string {
 
 // ─── CRUD ─────────────────────────────────────────────────────────────────────
 
+export function listarTodosLancamentos(): LancamentoFinanceiro[] {
+  return todos().sort((a, b) => b.data.localeCompare(a.data));
+}
+
 export function listarLancamentosCliente(clienteId: string): LancamentoFinanceiro[] {
   return todos()
     .filter((l) => l.clienteId === clienteId)
